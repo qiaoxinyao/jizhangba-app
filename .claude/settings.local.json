@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir /b)",
+      "mcp__ide__getDiagnostics",
+      "Bash(npx electron-vite *)",
+      "Bash(taskkill /F /IM electron.exe)",
+      "Bash(ELECTRON_DISABLE_GPU=1 npx electron-vite dev)",
+      "Bash(npx electron *)",
+      "Bash(curl -s http://localhost:5173)",
+      "Bash(tasklist)"
+    ]
+  }
+}
