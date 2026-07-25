@@ -11,7 +11,17 @@ const api = {
   // 更新一条记录
   updateRecord: (record: any) => ipcRenderer.invoke('store:updateRecord', record),
   // 导出数据
-  exportData: (format: 'csv' | 'json') => ipcRenderer.invoke('store:exportData', format)
+  exportData: (format: 'csv' | 'json') => ipcRenderer.invoke('store:exportData', format),
+
+  // ============ 分类管理 ============
+  // 获取用户自定义分类
+  getUserCategories: () => ipcRenderer.invoke('store:getUserCategories'),
+  // 新增分类
+  addUserCategory: (category: any) => ipcRenderer.invoke('store:addUserCategory', category),
+  // 修改分类
+  updateUserCategory: (category: any) => ipcRenderer.invoke('store:updateUserCategory', category),
+  // 删除分类
+  deleteUserCategory: (id: string) => ipcRenderer.invoke('store:deleteUserCategory', id)
 }
 
 contextBridge.exposeInMainWorld('api', api)

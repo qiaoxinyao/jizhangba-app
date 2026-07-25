@@ -1,9 +1,10 @@
 import React from 'react'
-import { CATEGORIES, COLORS } from './categories'
-import type { Record } from './categories'
+import { COLORS } from './categories'
+import type { Record, CategoryDef } from './categories'
 
 // ============ 组件接收的 props ============
 interface AddPageProps {
+  categories: CategoryDef[]
   amount: string
   selectedCategory: string
   selectedSubCategory: string
@@ -19,6 +20,7 @@ interface AddPageProps {
 }
 
 function AddPage({
+  categories,
   amount,
   selectedCategory,
   selectedSubCategory,
@@ -32,7 +34,7 @@ function AddPage({
   onNoteChange,
   onSave
 }: AddPageProps) {
-  const currentCategory = CATEGORIES.find(c => c.name === selectedCategory) || CATEGORIES[0]
+  const currentCategory = categories.find(c => c.name === selectedCategory) || categories[0]
 
   return (
     <div style={styles.container}>
@@ -65,9 +67,9 @@ function AddPage({
       <div style={styles.fieldRow}>
         <label style={styles.fieldLabel}>分类</label>
         <div style={styles.categoryGroup}>
-          {CATEGORIES.map(cat => (
+          {categories.map(cat => (
             <button
-              key={cat.name}
+              key={cat.id}
               className="cat-btn"
               style={selectedCategory === cat.name ? styles.categoryBtnActive : styles.categoryBtn}
               onClick={() => onCategoryChange(cat.name)}
@@ -82,7 +84,7 @@ function AddPage({
       <div style={styles.fieldRow}>
         <label style={styles.fieldLabel}>子类</label>
         <div style={styles.subCategoryGroup}>
-          {currentCategory.children.map(sub => (
+          {currentCategory && currentCategory.children.map(sub => (
             <button
               key={sub}
               className="sub-btn"

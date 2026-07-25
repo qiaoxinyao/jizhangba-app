@@ -28,13 +28,16 @@ const store = new Store({
       items: {
         type: 'object',
         properties: {
+          id: { type: 'string' },
           name: { type: 'string' },
           icon: { type: 'string' },
+          isPreset: { type: 'boolean' },
           children: {
             type: 'array',
             items: { type: 'string' }
           }
-        }
+        },
+        required: ['id', 'name', 'icon', 'isPreset', 'children']
       }
     }
   }
@@ -157,6 +160,35 @@ ${rows}
     console.error('导出失败:', message)
     return { success: false, reason: message }
   }
+})
+
+// ============ 分类管理 IPC ============
+ipcMain.handle('store:getUserCategories', () => {
+  return store.get('categories', [])
+})
+
+ipcMain.handle('store:addUserCategory', (_event, category) => {
+  const categories = store.get('categories', []) as any[]
+  categories.push(category)
+  store.set('categories', categories)
+  return categories
+})
+
+ipcMain.handle('store:updateUserCategory', (_event, updatedCategory) => {
+  const categories = store.get('categories', []) as any[]
+  const index = categories.findIndex((c: any) => c.id === updatedCategory.id)
+  if (index !== -1) {
+    categories[index] = updatedCategory
+    store.set('categories', categories)
+  }
+  return categories
+})
+
+ipcMain.handle('store:deleteUserCategory', (_event, id: string) => {
+  const categories = store.get('categories', []) as any[]
+  const filtered = categories.filter((c: any) => c.id !== id)
+  store.set('categories', filtered)
+  return filtered
 })
 
 // 禁用 GPU 加速，避免部分 Windows 系统上崩溃

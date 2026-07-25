@@ -1,9 +1,10 @@
 import React from 'react'
-import { CATEGORIES, COLORS } from './categories'
-import type { Record } from './categories'
+import { COLORS } from './categories'
+import type { Record, CategoryDef } from './categories'
 
 // ============ 组件接收的 props ============
 interface ListPageProps {
+  categories: CategoryDef[]
   records: Record[]
   filteredRecords: Record[]
   groupedRecords: Record<string, Record[]>
@@ -24,6 +25,7 @@ interface ListPageProps {
 }
 
 function ListPage({
+  categories,
   records,
   filteredRecords,
   groupedRecords,
@@ -55,9 +57,9 @@ function ListPage({
             >
               全部
             </button>
-            {CATEGORIES.map(cat => (
+            {categories.map(cat => (
               <button
-                key={cat.name}
+                key={cat.id}
                 className="filter-btn"
                 style={filterCategory === cat.name ? styles.filterCatBtnActive : styles.filterCatBtn}
                 onClick={() => onFilterCategoryChange(cat.name)}

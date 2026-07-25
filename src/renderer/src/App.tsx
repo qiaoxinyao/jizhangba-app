@@ -1,10 +1,11 @@
 import React from 'react'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import StatsPage from './StatsPage'
 import AddPage from './AddPage'
 import ListPage from './ListPage'
-import { CATEGORIES, COLORS } from './categories'
-import type { Record } from './categories'
+import CategoryManager from './CategoryManager'
+import { PRESET_CATEGORIES, COLORS, mergeCategories } from './categories'
+import type { Record, CategoryDef } from './categories'
 
 // ============ 工具函数 ============
 function groupByDate(records: Record[]): Record<string, Record[]> {
@@ -22,16 +23,29 @@ function groupByDate(records: Record[]): Record<string, Record[]> {
 // ============ 主界面组件 ============
 function App() {
   // 页面状态
-  const [page, setPage] = useState<'add' | 'list' | 'stats'>('add')
+  const [page, setPage] = useState<'add' | 'list' | 'stats' | 'manage'>('add')
   const [records, setRecords] = useState<Record[]>([])
 
   // 表单状态
   const [editingId, setEditingId] = useState<string | null>(null)
   const [amount, setAmount] = useState('')
-  const [selectedCategory, setSelectedCategory] = useState(CATEGORIES[0].name)
-  const [selectedSubCategory, setSelectedSubCategory] = useState(CATEGORIES[0].children[0])
+  const [selectedCategory, setSelectedCategory] = useState(PRESET_CATEGORIES[0].name)
+  const [selectedSubCategory, setSelectedSubCategory] = useState(PRESET_CATEGORIES[0].children[0])
   const [date, setDate] = useState(new Date().toISOString().split('T')[0])
   const [note, setNote] = useState('')
+
+  // ===== Toast 通知 =====
+  const [toast, setToast] = useState<{ message: string; visible: boolean }>({ message: '', visible: false })
+  const toastTimerRef = useRef<ReturnType<typeof setTimeout>>(0)
+
+  const showToast = (message: string) => {
+    // 清除上一个定时器
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current)
+    setToast({ message, visible: true })
+    toastTimerRef.current = setTimeout(() => {
+      setToast(prev => ({ ...prev, visible: false }))
+    }, 2500)
+  }
 
   // 筛选状态
   const [filterCategory, setFilterCategory] = useState('')
@@ -39,10 +53,42 @@ function App() {
   const [filterDateTo, setFilterDateTo] = useState('')
   const [filterKeyword, setFilterKeyword] = useState('')
 
+  // ===== 分类管理 =====
+  const [userCategories, setUserCategories] = useState<CategoryDef[]>([])
+
+  // 合并预置 + 自定义分类
+  const allCategories = useMemo(
+    () => mergeCategories(userCategories),
+    [userCategories]
+  )
+  // 用 ref 保证事件处理函数永远拿到最新分类列表
+  const allCategoriesRef = useRef(allCategories)
+  allCategoriesRef.current = allCategories
+
   // 加载数据
   useEffect(() => {
     window.api.getRecords().then(setRecords)
+    window.api.getUserCategories().then(setUserCategories)
   }, [])
+
+  // 分类管理操作
+  const handleAddCategory = async (cat: CategoryDef) => {
+    const updated = await window.api.addUserCategory(cat)
+    setUserCategories(updated)
+    showToast('✅ 添加分类成功！')
+  }
+
+  const handleUpdateCategory = async (cat: CategoryDef) => {
+    const updated = await window.api.updateUserCategory(cat)
+    setUserCategories(updated)
+    showToast('✅ 修改分类成功！')
+  }
+
+  const handleDeleteCategory = async (id: string) => {
+    const updated = await window.api.deleteUserCategory(id)
+    setUserCategories(updated)
+    showToast('🗑️ 已删除该分类')
+  }
 
   // 筛选计算
   const filteredRecords = records.filter(r => {
@@ -64,8 +110,11 @@ function App() {
   // 处理一级分类切换
   const handleCategoryChange = (catName: string) => {
     setSelectedCategory(catName)
-    const cat = CATEGORIES.find(c => c.name === catName)
-    if (cat) setSelectedSubCategory(cat.children[0])
+    // 用 ref 确保拿到最新分类列表
+    const cat = allCategoriesRef.current.find(c => c.name === catName)
+    if (cat && cat.children.length > 0) {
+      setSelectedSubCategory(cat.children[0])
+    }
   }
 
   // 保存记录
@@ -94,6 +143,7 @@ function App() {
       setEditingId(null)
       setAmount('')
       setNote('')
+      showToast(editingId ? '✅ 修改成功！' : '✅ 记一笔成功！')
     } catch (err) {
       console.error('保存失败:', err)
       alert('保存出错，请按 F12 查看控制台错误信息')
@@ -115,7 +165,16 @@ function App() {
   const handleDelete = async (id: string) => {
     const updated = await window.api.deleteRecord(id)
     setRecords(updated)
+    showToast('🗑️ 已删除该记录')
   }
+
+  // 导航按钮定义
+  const navItems = [
+    { key: 'add' as const,    label: '✏️ 记一笔' },
+    { key: 'list' as const,   label: '📋 历史记录' },
+    { key: 'stats' as const,  label: '📊 统计' },
+    { key: 'manage' as const, label: '⚙️ 管理' },
+  ]
 
   return (
     <div style={styles.container}>
@@ -140,38 +199,37 @@ function App() {
         .export-btn:hover { background: #e0f7f5; }
         .nav-title { animation: fadeIn 0.3s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(-20px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+        @keyframes toastOut { from { opacity: 1; transform: translateX(-50%) translateY(0); } to { opacity: 0; transform: translateX(-50%) translateY(-20px); } }
       `}</style>
       {/* 顶部导航 */}
       <header style={styles.header}>
         <h1 style={styles.title} className="nav-title">记账叭</h1>
         <div style={styles.nav}>
-          <button
-            className={page === 'add' ? 'nav-btn-active' : 'nav-btn'}
-            style={page === 'add' ? styles.navBtnActive : styles.navBtn}
-            onClick={() => setPage('add')}
-          >
-            ✏️ 记一笔
-          </button>
-          <button
-            className={page === 'list' ? 'nav-btn-active' : 'nav-btn'}
-            style={page === 'list' ? styles.navBtnActive : styles.navBtn}
-            onClick={() => setPage('list')}
-          >
-            📋 历史记录
-          </button>
-          <button
-            className={page === 'stats' ? 'nav-btn-active' : 'nav-btn'}
-            style={page === 'stats' ? styles.navBtnActive : styles.navBtn}
-            onClick={() => setPage('stats')}
-          >
-            📊 统计
-          </button>
+          {navItems.map(item => (
+            <button
+              key={item.key}
+              className={page === item.key ? 'nav-btn-active' : 'nav-btn'}
+              style={page === item.key ? styles.navBtnActive : styles.navBtn}
+              onClick={() => setPage(item.key)}
+            >
+              {item.label}
+            </button>
+          ))}
         </div>
       </header>
+
+      {/* Toast 通知条 — 不显示时直接移除 DOM */}
+      {toast.visible && (
+        <div style={styles.toast}>
+          {toast.message}
+        </div>
+      )}
 
       {/* 主体内容 */}
       {page === 'add' ? (
         <AddPage
+          categories={allCategories}
           amount={amount}
           selectedCategory={selectedCategory}
           selectedSubCategory={selectedSubCategory}
@@ -187,6 +245,7 @@ function App() {
         />
       ) : page === 'list' ? (
         <ListPage
+          categories={allCategories}
           records={records}
           filteredRecords={filteredRecords}
           groupedRecords={groupedRecords}
@@ -234,8 +293,15 @@ function App() {
             }
           }}
         />
-      ) : (
+      ) : page === 'stats' ? (
         <StatsPage records={records} />
+      ) : (
+        <CategoryManager
+          userCategories={userCategories}
+          onAddCategory={handleAddCategory}
+          onUpdateCategory={handleUpdateCategory}
+          onDeleteCategory={handleDeleteCategory}
+        />
       )}
     </div>
   )
@@ -281,6 +347,22 @@ const styles: Record<string, React.CSSProperties> = {
     color: COLORS.white,
     cursor: 'pointer',
     fontSize: 16
+  },
+  toast: {
+    position: 'fixed' as const,
+    top: 20,
+    left: '50%',
+    transform: 'translateX(-50%)',
+    padding: '10px 28px',
+    background: '#333',
+    color: '#fff',
+    borderRadius: 10,
+    fontSize: 15,
+    fontWeight: 600,
+    boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
+    zIndex: 9999,
+    whiteSpace: 'nowrap' as const,
+    animation: 'toastIn 0.25s ease'
   }
 }
 
