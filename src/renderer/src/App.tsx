@@ -5,12 +5,12 @@ import AddPage from './AddPage'
 import ListPage from './ListPage'
 import CategoryManager from './CategoryManager'
 import { PRESET_CATEGORIES, COLORS, mergeCategories } from './categories'
-import type { Record, CategoryDef } from './categories'
+import type { ExpenseRecord, CategoryDef } from './categories'
 
 // ============ 工具函数 ============
-function groupByDate(records: Record[]): Record<string, Record[]> {
+function groupByDate(records: ExpenseRecord[]): Record<string, ExpenseRecord[]> {
   const sorted = [...records].sort((a, b) => b.date.localeCompare(a.date))
-  const groups: Record<string, Record[]> = {}
+  const groups: Record<string, ExpenseRecord[]> = {}
   for (const record of sorted) {
     if (!groups[record.date]) {
       groups[record.date] = []
@@ -24,7 +24,7 @@ function groupByDate(records: Record[]): Record<string, Record[]> {
 function App() {
   // 页面状态
   const [page, setPage] = useState<'add' | 'list' | 'stats' | 'manage'>('add')
-  const [records, setRecords] = useState<Record[]>([])
+  const [records, setRecords] = useState<ExpenseRecord[]>([])
 
   // 表单状态
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -36,13 +36,15 @@ function App() {
 
   // ===== Toast 通知 =====
   const [toast, setToast] = useState<{ message: string; visible: boolean }>({ message: '', visible: false })
-  const toastTimerRef = useRef<ReturnType<typeof setTimeout>>(0)
+  const toastTimerRef = useRef<number>(0)
 
   const showToast = (message: string) => {
     // 清除上一个定时器
-    if (toastTimerRef.current) clearTimeout(toastTimerRef.current)
+    if (toastTimerRef.current) {
+      window.clearTimeout(toastTimerRef.current)
+    }
     setToast({ message, visible: true })
-    toastTimerRef.current = setTimeout(() => {
+    toastTimerRef.current = window.setTimeout(() => {
       setToast(prev => ({ ...prev, visible: false }))
     }, 2500)
   }
@@ -104,7 +106,7 @@ function App() {
     return true
   })
 
-  const isFilterActive = filterCategory || filterDateFrom || filterDateTo || filterKeyword
+  const isFilterActive = !!(filterCategory || filterDateFrom || filterDateTo || filterKeyword)
   const groupedRecords = groupByDate(filteredRecords)
 
   // 处理一级分类切换
@@ -125,7 +127,7 @@ function App() {
       return
     }
 
-    const recordData: Record = {
+    const recordData: ExpenseRecord = {
       id: editingId || Date.now().toString() + Math.random().toString(36).slice(2, 6),
       amount: numAmount,
       category: selectedCategory,
@@ -151,7 +153,7 @@ function App() {
   }
 
   // 编辑记录
-  const handleEdit = (record: Record) => {
+  const handleEdit = (record: ExpenseRecord) => {
     setEditingId(record.id)
     setAmount(String(record.amount))
     setSelectedCategory(record.category)

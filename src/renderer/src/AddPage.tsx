@@ -1,6 +1,6 @@
 import React from 'react'
 import { COLORS } from './categories'
-import type { Record, CategoryDef } from './categories'
+import type { ExpenseRecord, CategoryDef } from './categories'
 
 // ============ 组件接收的 props ============
 interface AddPageProps {

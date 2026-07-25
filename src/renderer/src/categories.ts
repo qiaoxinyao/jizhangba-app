@@ -34,7 +34,7 @@ export const CATEGORIES = PRESET_CATEGORIES.map(c => ({
 }))
 
 // ============ 记账记录类型 ============
-export interface Record {
+export interface ExpenseRecord {
   id: string
   amount: number
   category: string

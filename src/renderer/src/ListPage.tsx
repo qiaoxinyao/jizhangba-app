@@ -1,13 +1,13 @@
 import React from 'react'
 import { COLORS } from './categories'
-import type { Record, CategoryDef } from './categories'
+import type { ExpenseRecord, CategoryDef } from './categories'
 
 // ============ 组件接收的 props ============
 interface ListPageProps {
   categories: CategoryDef[]
-  records: Record[]
-  filteredRecords: Record[]
-  groupedRecords: Record<string, Record[]>
+  records: ExpenseRecord[]
+  filteredRecords: ExpenseRecord[]
+  groupedRecords: Record<string, ExpenseRecord[]>
   isFilterActive: boolean
   filterCategory: string
   filterDateFrom: string
@@ -18,7 +18,7 @@ interface ListPageProps {
   onFilterDateToChange: (val: string) => void
   onFilterKeywordChange: (val: string) => void
   onClearFilters: () => void
-  onEdit: (record: Record) => void
+  onEdit: (record: ExpenseRecord) => void
   onDelete: (id: string) => void
   onExportCSV: () => void
   onExportJSON: () => void

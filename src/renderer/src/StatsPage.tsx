@@ -6,7 +6,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as BarTooltip, ResponsiveContainer as BarResponsiveContainer
 } from 'recharts'
 import { getMonthlyStats, formatCurrency, MonthlyStats } from './statsUtils'
-import type { Record } from './categories'
+import type { ExpenseRecord } from './categories'
 
 // ============ 饼图配色（10 种分类各一种） ============
 const CATEGORY_COLORS: Record<string, string> = {
@@ -29,7 +29,7 @@ const currentMonth = now.getMonth() + 1
 
 // 组件接收 records 作为 prop
 interface StatsPageProps {
-  records: Record[]
+  records: ExpenseRecord[]
 }
 
 function StatsPage({ records }: StatsPageProps) {

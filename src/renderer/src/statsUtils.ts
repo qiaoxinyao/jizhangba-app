@@ -1,6 +1,6 @@
 // ============ 类型定义 ============
 
-import type { Record } from './categories'
+import type { ExpenseRecord } from './categories'
 
 export interface CategoryBreakdown {
   name: string
@@ -49,7 +49,7 @@ const CATEGORY_ICONS: Record<string, string> = {
  * @param year 年份
  * @param month 月份（1-12）
  */
-export function getMonthlyStats(records: Record[], year: number, month: number): MonthlyStats {
+export function getMonthlyStats(records: ExpenseRecord[], year: number, month: number): MonthlyStats {
   // 格式化年月前缀，用于匹配
   const ymPrefix = `${year}-${String(month).padStart(2, '0')}`
 
