@@ -22,17 +22,17 @@ const CATEGORY_COLORS: Record<string, string> = {
   '其他': '#636e72'
 }
 
-// 获取当前日期
-const now = new Date()
-const currentYear = now.getFullYear()
-const currentMonth = now.getMonth() + 1
-
 // 组件接收 records 作为 prop
 interface StatsPageProps {
   records: ExpenseRecord[]
 }
 
 function StatsPage({ records }: StatsPageProps) {
+  // 当前日期（每次渲染都重新获取，避免跨月时出错）
+  const now = new Date()
+  const currentYear = now.getFullYear()
+  const currentMonth = now.getMonth() + 1
+
   const [viewYear, setViewYear] = useState(currentYear)
   const [viewMonth, setViewMonth] = useState(currentMonth)
 

@@ -4,6 +4,7 @@ import StatsPage from './StatsPage'
 import AddPage from './AddPage'
 import ListPage from './ListPage'
 import CategoryManager from './CategoryManager'
+import SnakeGame from './SnakeGame'
 import { PRESET_CATEGORIES, COLORS, mergeCategories } from './categories'
 import type { ExpenseRecord, CategoryDef } from './categories'
 
@@ -23,7 +24,7 @@ function groupByDate(records: ExpenseRecord[]): Record<string, ExpenseRecord[]> 
 // ============ 主界面组件 ============
 function App() {
   // 页面状态
-  const [page, setPage] = useState<'add' | 'list' | 'stats' | 'manage'>('add')
+  const [page, setPage] = useState<'add' | 'list' | 'stats' | 'manage' | 'game'>('add')
   const [records, setRecords] = useState<ExpenseRecord[]>([])
 
   // 表单状态
@@ -176,6 +177,7 @@ function App() {
     { key: 'list' as const,   label: '📋 历史记录' },
     { key: 'stats' as const,  label: '📊 统计' },
     { key: 'manage' as const, label: '⚙️ 管理' },
+    { key: 'game' as const,   label: '🎮 玩游戏' },
   ]
 
   return (
@@ -297,6 +299,8 @@ function App() {
         />
       ) : page === 'stats' ? (
         <StatsPage records={records} />
+      ) : page === 'game' ? (
+        <SnakeGame />
       ) : (
         <CategoryManager
           userCategories={userCategories}
