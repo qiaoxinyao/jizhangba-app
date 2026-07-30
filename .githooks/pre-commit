@@ -1,0 +1,37 @@
+#!/bin/sh
+# ============ pre-commit ============
+# 检查测试和质量通行证是否有效，通过才放行提交
+
+PASSED_DIR="$(git rev-parse --show-toplevel)/.claude/passed"
+TEST_FILE="$PASSED_DIR/test-passed"
+QUALITY_FILE="$PASSED_DIR/quality-passed"
+TIMEOUT=600  # 10分钟内有效（考虑到 git commit 前可能先跑了检查）
+
+NOW=$(date +%s)
+
+is_fresh() {
+  if [ ! -f "$1" ]; then
+    return 1
+  fi
+  FILE_TIME=$(stat -c %Y "$1" 2>/dev/null || echo 0)
+  [ "$((NOW - FILE_TIME))" -lt "$TIMEOUT" ]
+}
+
+echo "🔍 检查测试通行证..."
+if ! is_fresh "$TEST_FILE"; then
+  echo ""
+  echo "❌ 提交被拒绝：测试通行证缺失或已过期"
+  echo "   请先运行 /gitcommit 完成测试和质量检查"
+  exit 1
+fi
+
+echo "🔍 检查质量通行证..."
+if ! is_fresh "$QUALITY_FILE"; then
+  echo ""
+  echo "❌ 提交被拒绝：质量检查通行证缺失或已过期"
+  echo "   请先运行 /gitcommit 完成测试和质量检查"
+  exit 1
+fi
+
+echo "✅ 通行证有效，放行提交！"
+exit 0

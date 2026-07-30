@@ -1,0 +1,9 @@
+#!/bin/sh
+# ============ post-push ============
+# 推送成功后，删除通行证，下次必须重新检查
+
+PASSED_DIR="$(git rev-parse --show-toplevel)/.claude/passed"
+
+rm -f "$PASSED_DIR/test-passed" "$PASSED_DIR/quality-passed"
+echo "🗑️ 通行证已销毁，下次提交前需重新检查"
+exit 0

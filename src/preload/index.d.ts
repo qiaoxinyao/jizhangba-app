@@ -5,7 +5,7 @@ interface Api {
   addRecord: (record: any) => Promise<any[]>
   deleteRecord: (id: string) => Promise<any[]>
   updateRecord: (record: any) => Promise<any[]>
-  exportData: (format: string) => Promise<{ success: boolean; reason?: string; path?: string; fallback?: boolean }>
+  exportData: (format: 'xls' | 'json') => Promise<{ success: boolean; reason?: string; path?: string; fallback?: boolean }>
 
   // 分类管理
   getUserCategories: () => Promise<any[]>

@@ -10,8 +10,8 @@ const api = {
   deleteRecord: (id: string) => ipcRenderer.invoke('store:deleteRecord', id),
   // 更新一条记录
   updateRecord: (record: any) => ipcRenderer.invoke('store:updateRecord', record),
-  // 导出数据
-  exportData: (format: 'csv' | 'json') => ipcRenderer.invoke('store:exportData', format),
+  // 导出数据（xls = Excel 表格，json = 纯 JSON 文件）
+  exportData: (format: 'xls' | 'json') => ipcRenderer.invoke('store:exportData', format),
 
   // ============ 分类管理 ============
   // 获取用户自定义分类
